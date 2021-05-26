@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.sendletter.blob;
 
+import com.azure.core.util.Context;
+import com.azure.storage.blob.models.BlobRequestConditions;
+import com.azure.storage.blob.models.DeleteSnapshotsOptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +55,11 @@ public class BlobProcessor {
             LOG.info("BlobProcessor::blob {} has been leased for {} seconds with leaseId {}",
                     blobInfo.getBlobName(), leaseTime, leaseId);
             status = blobUpload.process(blobInfo);
-
+            blobClient.deleteWithResponse(
+                    DeleteSnapshotsOptionType.INCLUDE,
+                    new BlobRequestConditions().setLeaseId(leaseId),
+                    null,
+                    Context.NONE);
             LOG.info("BlobProcessor:: delete original blobs");
         } catch (Exception e) {
             LOG.error("Exception processing blob {}", blobInfo.getBlobName(), e);

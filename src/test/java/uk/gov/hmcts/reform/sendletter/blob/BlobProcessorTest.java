@@ -2,10 +2,12 @@ package uk.gov.hmcts.reform.sendletter.blob;
 
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.models.BlobRequestConditions;
 import com.azure.storage.blob.specialized.BlobLeaseClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.sendletter.blob.component.BlobManager;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -110,5 +113,10 @@ class BlobProcessorTest {
 
         verify(blobManager, times(3)).getContainerClient(CONTAINER);
         verify(blobLeaseClient, times(3)).acquireLease(anyInt());
+        ArgumentCaptor<BlobRequestConditions> blobRequestConditionArg =
+                ArgumentCaptor.forClass(BlobRequestConditions.class);
+        verify(blobClient).deleteWithResponse(any(), blobRequestConditionArg.capture(), any(), any());
+        assertThat(blobRequestConditionArg.getValue().getLeaseId())
+                .isEqualTo(leasedId);
     }
 }

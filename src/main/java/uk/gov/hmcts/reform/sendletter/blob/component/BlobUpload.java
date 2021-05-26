@@ -41,10 +41,6 @@ public class BlobUpload {
             byte[] fileContent = blobInputStream.readAllBytes();
             doZipAndUpload(pdfFile, fileContent);
         }
-
-        //delete the source blob
-        sourceBlobClient.delete();
-        LOG.info("Blob {} delete successfully.", sourceBlobClient.getBlobUrl());
         return true;
     }
 
