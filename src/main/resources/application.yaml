@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: Send Letter Service Container Processed
+  config:
+    import: "optional:configtree:/mnt/secrets/rpe-send-letter/"
+  jackson:
+    serialization.write_dates_as_timestamps: false
+
+storage:
+  connection: ${STORAGE_ACCOUNT_CONNECTION_STRING}
+  leaseTime: ${BLOB_LEASE_TIME:20} #In seconds
+
+accesstoken:
+  serviceConfig:
+    - containerName: processed
+      validity: ${SAS_TOKEN_VALIDITY:300} #In seconds
+
