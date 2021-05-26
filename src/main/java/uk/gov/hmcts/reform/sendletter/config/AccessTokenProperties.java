@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.sendletter.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import uk.gov.hmcts.reform.sendletter.exceptions.ServiceConfigNotFoundException;
 
 import java.util.List;
 
+@Configuration
 @ConfigurationProperties("accesstoken")
 public class AccessTokenProperties {
     private List<TokenConfig> serviceConfig;
