@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.sendletter.zip.Zipper;
 import java.io.IOException;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -83,16 +84,25 @@ class BlobUploadTest {
 
     @Test
     void should_zip_blob_and_upload() throws IOException {
-
         given(client.openInputStream()).willReturn(blobInputStream);
         given(blobManager.getContainerClient(any())).willReturn(zipContainerClient);
         given(zipContainerClient.getBlobClient(anyString())).willReturn(zipBlobClient);
         given(blobManager.getBlobClient(any(), any(), any())).willReturn(client);
         given(zipper.zipBytes(anyString(), any())).willReturn("zipContent".getBytes());
 
-
         boolean process = blobUpload.process(blobInfo);
         assertTrue(process);
+    }
+
+    @Test
+    void should_not_zip_blob_and_upload() throws IOException {
+        given(client.openInputStream()).willReturn(blobInputStream);
+        given(blobManager.getBlobClient(any(), any(), any())).willReturn(client);
+        given(zipper.zipBytes(anyString(), any()))
+                .willThrow(new RuntimeException("Exception in uploading manifests-xyz.pdf"));
+
+        boolean process = blobUpload.process(blobInfo);
+        assertFalse(process);
     }
 
     private void createAccessTokenConfig() {

@@ -30,6 +30,7 @@ public class BlobUpload {
 
     //zip files in the ‘processed container’ and move them to the ‘zipped’ container
     public boolean process(final ProcessedBlobInfo blobInfo) throws IOException {
+        var status = false;
         var containerName = blobInfo.getContainerName();
 
         LOG.info("zipAndMove:: containerName {}", containerName);
@@ -39,19 +40,25 @@ public class BlobUpload {
 
         try (var blobInputStream = sourceBlobClient.openInputStream()) {
             byte[] fileContent = blobInputStream.readAllBytes();
-            doZipAndUpload(pdfFile, fileContent);
+            status = doZipAndUpload(pdfFile, fileContent);
         }
-        return true;
+        return status;
     }
 
-    private void doZipAndUpload(String pdfFile, byte[] fileContent) throws IOException {
-        var zipFile = ZipFileNameHelper
-                .getZipFileName(pdfFile, LocalDateTime.now(), pdfFile.lastIndexOf("_"));
-        byte[] zipContent = zipper.zipBytes(pdfFile, fileContent);
-        var containerClient = blobManager.getContainerClient(ZIPPED_CONTAINER);
-        var zipBlobClient = containerClient.getBlobClient(zipFile);
-        var byteArrayInputStream = new ByteArrayInputStream(zipContent);
-        zipBlobClient.upload(byteArrayInputStream, zipContent.length);
-        LOG.info("Uploaded blob {} to zipped container completed.", zipBlobClient.getBlobUrl());
+    private boolean doZipAndUpload(String pdfFile, byte[] fileContent) {
+        try {
+            var zipFile = ZipFileNameHelper
+                    .getZipFileName(pdfFile, LocalDateTime.now(), pdfFile.lastIndexOf("_"));
+            byte[] zipContent = zipper.zipBytes(pdfFile, fileContent);
+            var containerClient = blobManager.getContainerClient(ZIPPED_CONTAINER);
+            var zipBlobClient = containerClient.getBlobClient(zipFile);
+            var byteArrayInputStream = new ByteArrayInputStream(zipContent);
+            zipBlobClient.upload(byteArrayInputStream, zipContent.length);
+            LOG.info("Uploaded blob {} to zipped container completed.", zipBlobClient.getBlobUrl());
+            return true;
+        } catch (Exception e) {
+            LOG.error("Exception in uploading {}", pdfFile, e);
+            return false;
+        }
     }
 }
