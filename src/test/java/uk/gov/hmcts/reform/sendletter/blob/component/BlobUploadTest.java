@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.sendletter.blob.component;
 
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobClientBuilder;
+import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.specialized.BlobInputStream;
@@ -26,7 +27,6 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class BlobUploadTest {
-    private static final String ZIPPED_CONTAINER = "zipped";
     private static final String PROCESSED_CONTAINER = "processed";
     private static final String BLOB_NAME = "test-mypdf.pdf";
 
@@ -36,6 +36,11 @@ class BlobUploadTest {
 
     @Mock
     private BlobManager blobManager;
+
+    @Mock
+    private BlobContainerClient zipContainerClient;
+    @Mock
+    private BlobClient zipBlobClient;
 
     @Mock
     private BlobClient client;
@@ -80,12 +85,14 @@ class BlobUploadTest {
     void should_zip_blob_and_upload() throws IOException {
 
         given(client.openInputStream()).willReturn(blobInputStream);
+        given(blobManager.getContainerClient(any())).willReturn(zipContainerClient);
+        given(zipContainerClient.getBlobClient(anyString())).willReturn(zipBlobClient);
         given(blobManager.getBlobClient(any(), any(), any())).willReturn(client);
         given(zipper.zipBytes(anyString(), any())).willReturn("zipContent".getBytes());
 
+
         boolean process = blobUpload.process(blobInfo);
         assertTrue(process);
-        //verify(client).upload(any(), any());
     }
 
     private void createAccessTokenConfig() {

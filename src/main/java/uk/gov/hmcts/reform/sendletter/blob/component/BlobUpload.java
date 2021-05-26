@@ -39,7 +39,7 @@ public class BlobUpload {
 
         try (var blobInputStream = sourceBlobClient.openInputStream()) {
             byte[] fileContent = blobInputStream.readAllBytes();
-            doZipAndUpload(pdfFile, fileContent, sasToken);
+            doZipAndUpload(pdfFile, fileContent);
         }
 
         //delete the source blob
@@ -48,12 +48,12 @@ public class BlobUpload {
         return true;
     }
 
-    private void doZipAndUpload(String pdfFile, byte[] fileContent, String sasToken) throws IOException {
+    private void doZipAndUpload(String pdfFile, byte[] fileContent) throws IOException {
         var zipFile = ZipFileNameHelper
                 .getZipFileName(pdfFile, LocalDateTime.now(), pdfFile.lastIndexOf("_"));
         byte[] zipContent = zipper.zipBytes(pdfFile, fileContent);
-        var zipBlobClient = blobManager.getBlobClient(ZIPPED_CONTAINER, sasToken, zipFile);
-
+        var containerClient = blobManager.getContainerClient(ZIPPED_CONTAINER);
+        var zipBlobClient = containerClient.getBlobClient(zipFile);
         var byteArrayInputStream = new ByteArrayInputStream(zipContent);
         zipBlobClient.upload(byteArrayInputStream, zipContent.length);
         LOG.info("Uploaded blob {} to zipped container completed.", zipBlobClient.getBlobUrl());
