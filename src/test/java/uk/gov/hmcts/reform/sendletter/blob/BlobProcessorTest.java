@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,7 +55,11 @@ class BlobProcessorTest {
 
         blobInfos = List.of(
                 new ProcessedBlobInfo(CONTAINER,
-                        "manifests-xyz.pdf")
+                        "manifests-xyz.pdf"),
+                new ProcessedBlobInfo(CONTAINER,
+                "manifests-abc.pdf"),
+                new ProcessedBlobInfo(CONTAINER,
+                "manifests-lmn.pdf")
         );
 
         blobProcessor = new BlobProcessor(blobReader, blobManager, leaseClientProvider, blobUpload, 10);
@@ -88,4 +93,22 @@ class BlobProcessorTest {
         verify(blobManager, never()).getContainerClient(anyString());
     }
 
+    @Test
+    void should_process_second_processed_file_when_first_two_are_leased() throws IOException {
+        given(blobManager.getContainerClient(any())).willReturn(blobContainerClient);
+        given(blobContainerClient.getBlobClient(any())).willReturn(blobClient);
+        given(leaseClientProvider.get(blobClient)).willReturn(blobLeaseClient);
+        String leasedId = "leased";
+        given(blobLeaseClient.acquireLease(anyInt()))
+                .willThrow(new RuntimeException("First already leased"))
+                .willThrow(new RuntimeException("Second already leased"))
+                .willReturn(leasedId);
+
+        given(blobUpload.process(blobInfos.get(2))).willReturn(true);
+        boolean processed = blobProcessor.read();
+        assertTrue(processed);
+
+        verify(blobManager, times(3)).getContainerClient(CONTAINER);
+        verify(blobLeaseClient, times(3)).acquireLease(anyInt());
+    }
 }
