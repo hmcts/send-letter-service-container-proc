@@ -23,7 +23,7 @@ public class Application implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            LOGGER.info("send letter new KEDA container invoked");
+            LOGGER.info("send letter processed KEDA container invoked");
             retrieve.read();
         } catch (Exception e) {
             LOGGER.info("Exception occured while KEDA container invoked", e);
