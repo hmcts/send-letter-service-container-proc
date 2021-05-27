@@ -129,7 +129,7 @@ sonarqube {
     property "sonar.projectName", "Reform :: rpe-send-letter-service-container-processed"
     property "sonar.projectKey", "uk.gov.hmcts.reform:rpe-send-letter-service-container-processed"
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
-    property "sonar.exclusions", "**/model/in/*,**/config/**"
+    property "sonar.exclusions", "**/model/*,**/config/**"
     property "sonar.test.exclusions", sonarExclusions.join(", ")
     property "sonar.coverage.exclusions", sonarExclusions.join(", ")
   }
@@ -228,8 +228,6 @@ dependencies {
 
   implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
   implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: versions.springfoxSwagger
-
-  implementation group: 'com.github.hmcts.rpe-pdf-service', name: 'pdf-generator', version:'1.0.2'
 
   compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1'
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.14.1'
