@@ -126,8 +126,8 @@ def sonarExclusions = [
 
 sonarqube {
   properties {
-    property "sonar.projectName", "Reform :: rpe-send-letter-service-container-processed"
-    property "sonar.projectKey", "uk.gov.hmcts.reform:rpe-send-letter-service-container-processed"
+    property "sonar.projectName", "Reform :: rpe-send-letter-service-container-proc"
+    property "sonar.projectKey", "uk.gov.hmcts.reform:rpe-send-letter-service-container-proc"
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
     property "sonar.exclusions", "**/model/*,**/config/**"
     property "sonar.test.exclusions", sonarExclusions.join(", ")
@@ -251,7 +251,7 @@ mainClassName = 'uk.gov.hmcts.reform.sendletter.Application'
 
 bootJar {
   getArchiveFileName().set(provider {
-    'rpe-send-letter-service-container-processed.jar'
+    'rpe-send-letter-service-container-proc.jar'
   })
 
   manifest {

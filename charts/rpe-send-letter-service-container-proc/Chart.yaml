@@ -1,5 +1,5 @@
 apiVersion: v2
-name: rpe-send-letter-service-container-processed
+name: rpe-send-letter-service-container-proc
 description: A Helm chart for send-letter-service-container-processed App
 
 # A chart can be either an 'application' or a 'library' chart.
