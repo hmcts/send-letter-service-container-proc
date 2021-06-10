@@ -196,7 +196,7 @@ dependencyManagement {
       entry 'spring-jcl'
     }
     //CVE-2020-10693
-    dependencySet(group: 'org.hibernate.validator', version: '6.2.0.Final') {
+    dependencySet(group: 'org.hibernate.validator', version: '7.0.1.Final') {
       entry 'hibernate-validator'
     }
   }
