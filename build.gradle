@@ -4,7 +4,7 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-  id 'org.springframework.boot' version '2.4.4'
+  id 'org.springframework.boot' version '2.5.0'
   id 'org.owasp.dependencycheck' version '6.1.5'
   id 'com.github.ben-manes.versions' version '0.38.0'
   id 'org.sonarqube' version '3.1.1'
@@ -194,6 +194,10 @@ dependencyManagement {
       entry 'spring-core'
       entry 'spring-expression'
       entry 'spring-jcl'
+    }
+    //CVE-2020-10693
+    dependencySet(group: 'org.hibernate.validator', version: '6.2.0.Final') {
+      entry 'hibernate-validator'
     }
   }
 }
