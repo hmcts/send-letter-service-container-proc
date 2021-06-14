@@ -1,116 +1,126 @@
 package uk.gov.hmcts.reform.sendletter.blob.component;
 
 import com.azure.storage.blob.BlobClient;
-import com.azure.storage.blob.BlobClientBuilder;
-import com.azure.storage.blob.BlobContainerClient;
-import com.azure.storage.blob.BlobServiceClient;
-import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.specialized.BlobInputStream;
-import com.azure.storage.common.StorageSharedKeyCredential;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.sendletter.config.AccessTokenProperties;
-import uk.gov.hmcts.reform.sendletter.model.ProcessedBlobInfo;
+import uk.gov.hmcts.reform.sendletter.exceptions.UnableToZipException;
+import uk.gov.hmcts.reform.sendletter.model.BlobInfo;
 import uk.gov.hmcts.reform.sendletter.services.SasTokenGeneratorService;
 import uk.gov.hmcts.reform.sendletter.zip.Zipper;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.function.BiFunction;
 
-import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static java.util.List.of;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class BlobUploadTest {
-    private static final String PROCESSED_CONTAINER = "processed";
-    private static final String BLOB_NAME = "test-mypdf.pdf";
-
-    private AccessTokenProperties accessTokenProperties;
-    private BlobUpload blobUpload;
-    private ProcessedBlobInfo blobInfo;
-
+    private static final String TEST_BLOB_NAME = "test-mypdf.pdf";
+    private static final String ZIP_BLOB_NAME = "test-mypdf.zip";
     @Mock
     private BlobManager blobManager;
-
     @Mock
-    private BlobContainerClient zipContainerClient;
+    private SasTokenGeneratorService sasTokenGeneratorService;
+    @Mock
+    private BlobClient blobClient;
     @Mock
     private BlobClient zipBlobClient;
-
-    @Mock
-    private BlobClient client;
     @Mock
     private Zipper zipper;
     @Mock
     private BlobInputStream blobInputStream;
+    private BlobUpload blobUpload;
+    private AccessTokenProperties accessTokenProperties;
 
     @BeforeEach
     void setUp() {
-        blobInfo = new ProcessedBlobInfo(PROCESSED_CONTAINER, "manifests-xyz.pdf");
-
-        given(blobManager.getAccountUrl()).willReturn("http://test.account");
-
-        StorageSharedKeyCredential storageCredentials =
-                new StorageSharedKeyCredential("testAccountName", "dGVzdGtleQ==");
-
-        BlobServiceClient blobServiceClient = new BlobServiceClientBuilder()
-                .credential(storageCredentials)
-                .endpoint("http://test.account")
-                .buildClient();
-
         createAccessTokenConfig();
-
-        SasTokenGeneratorService sasTokenGeneratorService = new SasTokenGeneratorService(blobServiceClient,
-                accessTokenProperties);
-
-        blobUpload = new BlobUpload(blobManager, sasTokenGeneratorService, zipper);
-
-        var sasToken = sasTokenGeneratorService.generateSasToken(PROCESSED_CONTAINER);
-
-        BlobClient sourceBlobClient = new BlobClientBuilder()
-                .endpoint(blobManager.getAccountUrl())
-                .sasToken(sasToken)
-                .containerName(PROCESSED_CONTAINER)
-                .blobName(BLOB_NAME)
-                .buildClient();
-
+        blobUpload = new BlobUpload(
+                blobManager,
+                sasTokenGeneratorService,
+                accessTokenProperties,
+                zipper
+        );
     }
 
     @Test
-    void should_zip_blob_and_upload() throws IOException {
-        given(client.openInputStream()).willReturn(blobInputStream);
-        given(blobManager.getContainerClient(any())).willReturn(zipContainerClient);
-        given(zipContainerClient.getBlobClient(anyString())).willReturn(zipBlobClient);
-        given(blobManager.getBlobClient(any(), any(), any())).willReturn(client);
+    void should_upload_blob_when_able_to_zip() throws IOException {
+        given(blobClient.getBlobName()).willReturn(TEST_BLOB_NAME);
+        var blobInfo = new BlobInfo(blobClient);
+        blobInfo.setLeaseId("LEASE_ID");
         given(zipper.zipBytes(anyString(), any())).willReturn("zipContent".getBytes());
+        given(blobClient.openInputStream()).willReturn(blobInputStream);
+        String sasToken = "sasToken";
+        String zipped = "zipped";
+        given(sasTokenGeneratorService.generateSasToken(zipped))
+                .willReturn(sasToken);
+        given(blobManager.getBlobClient(
+                zipped,
+                sasToken,
+                ZIP_BLOB_NAME
+        )).willReturn(this.zipBlobClient);
 
-        boolean process = blobUpload.process(blobInfo);
-        assertTrue(process);
+        blobUpload.process(blobInfo);
+
+        verify(sasTokenGeneratorService).generateSasToken(zipped);
+        verify(blobManager).getBlobClient(
+                zipped,
+                sasToken,
+                ZIP_BLOB_NAME
+        );
+        ArgumentCaptor<ByteArrayInputStream> byteCaptor = ArgumentCaptor.forClass(ByteArrayInputStream.class);
+        long dataLength = "zipContent".getBytes().length;
+        verify(zipBlobClient).upload(
+                byteCaptor.capture(),
+                eq(dataLength));
+        var value = byteCaptor.getValue();
+        byte[] bytes = value.readAllBytes();
+        assertThat(bytes).contains("zipContent".getBytes());
     }
 
     @Test
-    void should_not_zip_blob_and_upload() throws IOException {
-        given(client.openInputStream()).willReturn(blobInputStream);
-        given(blobManager.getBlobClient(any(), any(), any())).willReturn(client);
+    void should_not_upload_blob_when_unable_to_zip() throws IOException {
+        given(blobClient.getBlobName()).willReturn(TEST_BLOB_NAME);
+        var blobInfo = new BlobInfo(blobClient);
+        blobInfo.setLeaseId("LEASE_ID");
         given(zipper.zipBytes(anyString(), any()))
-                .willThrow(new RuntimeException("Exception in uploading manifests-xyz.pdf"));
+                .willThrow(new RuntimeException("Exception in zipping and upload test-mypdf.pdf"));
+        given(blobClient.openInputStream()).willReturn(blobInputStream);
 
-        boolean process = blobUpload.process(blobInfo);
-        assertFalse(process);
+        assertThatThrownBy(() -> blobUpload.process(blobInfo))
+                .isInstanceOf(UnableToZipException.class)
+                .hasMessage("Exception in zipping and upload test-mypdf.pdf");
     }
 
     private void createAccessTokenConfig() {
-        AccessTokenProperties.TokenConfig tokenConfig = new AccessTokenProperties.TokenConfig();
-        tokenConfig.setValidity(300);
-        tokenConfig.setContainerName(PROCESSED_CONTAINER);
-
+        BiFunction<String, String, AccessTokenProperties.TokenConfig> tokenFunction = (type, container) -> {
+            AccessTokenProperties.TokenConfig tokenConfig = new AccessTokenProperties.TokenConfig();
+            tokenConfig.setValidity(300);
+            tokenConfig.setContainerType(type);
+            tokenConfig.setContainerName(container);
+            return tokenConfig;
+        };
         accessTokenProperties = new AccessTokenProperties();
-        accessTokenProperties.setServiceConfig(singletonList(tokenConfig));
+        accessTokenProperties.setServiceConfig(
+                of(
+                        tokenFunction.apply("source", "processed"),
+                        tokenFunction.apply("destination", "zipped")
+
+                )
+        );
     }
 }

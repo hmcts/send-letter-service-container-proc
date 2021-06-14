@@ -13,5 +13,8 @@ storage:
 accesstoken:
   serviceConfig:
     - containerName: processed
+      containerType: source
       validity: ${SAS_TOKEN_VALIDITY:300} #In seconds
-
+    - containerName: zipped
+      containerType: destination
+      validity: ${SAS_TOKEN_VALIDITY:300} #In seconds
