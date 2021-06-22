@@ -28,6 +28,10 @@ public class Application implements CommandLineRunner {
     public void run(String... args) {
         try {
             telemetryClient.trackEvent("send letter processed KEDA container invoked");
+            if (telemetryClient.getContext() != null) {
+                LOGGER.info("Telemetry instrumentationKey {}",
+                        telemetryClient.getContext().getInstrumentationKey());
+            }
             LOGGER.info("send letter processed KEDA container invoked");
             retrieve.read();
             LOGGER.info("send letter processed KEDA container finished");
