@@ -28,10 +28,6 @@ public class Application implements CommandLineRunner {
     public void run(String... args) {
         try {
             telemetryClient.trackEvent("send letter processed keda container invoked");
-            if (telemetryClient.getContext() != null) {
-                LOGGER.info("Temp logging Telemetry instrumentationKey {} once working remove this",
-                        telemetryClient.getContext().getInstrumentationKey());
-            }
             LOGGER.info("send letter processed keda container invoked");
             retrieve.read();
             LOGGER.info("send letter processed keda container finished");
@@ -41,7 +37,7 @@ public class Application implements CommandLineRunner {
             // Initiate flush and give it some time to finish.
             telemetryClient.flush();
             try {
-                Thread.sleep(5000);
+                Thread.sleep(10000);
             } catch (InterruptedException ie) {
                 LOGGER.error("Exception in thread sleep", ie);
                 Thread.currentThread().interrupt();
