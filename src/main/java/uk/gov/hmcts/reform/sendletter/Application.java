@@ -27,20 +27,25 @@ public class Application implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            telemetryClient.trackEvent("send letter processed KEDA container invoked");
+            telemetryClient.trackEvent("send letter processed keda container invoked");
             if (telemetryClient.getContext() != null) {
-                LOGGER.info("Telemetry instrumentationKey {}",
+                LOGGER.info("Temp logging Telemetry instrumentationKey {} once working remove this",
                         telemetryClient.getContext().getInstrumentationKey());
             }
-            LOGGER.info("send letter processed KEDA container invoked");
+            LOGGER.info("send letter processed keda container invoked");
             retrieve.read();
-            LOGGER.info("send letter processed KEDA container finished");
+            LOGGER.info("send letter processed keda container finished");
+        } catch (Exception e) {
+            LOGGER.error("Exception occurred while keda container invoked", e);
+        } finally {
             // Initiate flush and give it some time to finish.
             telemetryClient.flush();
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            LOGGER.error("Exception occured while KEDA container invoked", e);
-            Thread.currentThread().interrupt();
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ie) {
+                LOGGER.error("Exception in thread sleep", ie);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }
