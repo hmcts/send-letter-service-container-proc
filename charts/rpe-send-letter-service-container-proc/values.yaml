@@ -11,7 +11,7 @@ function:
         - name: app-insights-instrumentation-key
           alias: azure.application-insights.instrumentation-key
   job:
-    parallelism: 5
+    parallelism: 1
     completions: 5
     activeDeadlineSeconds: 300
     ttlSecondsAfterFinished: 600
