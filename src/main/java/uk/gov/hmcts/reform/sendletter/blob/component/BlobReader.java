@@ -59,8 +59,7 @@ public class BlobReader {
             blobInfo.setLeaseId(leaseId);
         } catch (Exception e) {
             LOG.error("Unable to acquire lease for blob {}",
-                    blobInfo.getBlobClient().getBlobName(),
-                    e);
+                    blobInfo.getBlobClient().getBlobName());
         }
     }
 }
