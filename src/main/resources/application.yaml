@@ -1,3 +1,16 @@
+management:
+  endpoint:
+    health:
+      show-details: "always"
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health, info
+  health:
+    mail:
+      enabled: false
+
 spring:
   application:
     name: Send Letter Service Container Processed
@@ -13,5 +26,8 @@ storage:
 accesstoken:
   serviceConfig:
     - containerName: processed
+      containerType: source
       validity: ${SAS_TOKEN_VALIDITY:300} #In seconds
-
+    - containerName: zipped
+      containerType: destination
+      validity: ${SAS_TOKEN_VALIDITY:300} #In seconds

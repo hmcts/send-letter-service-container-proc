@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.sendletter;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ public class Application implements CommandLineRunner {
     @Autowired
     private BlobProcessor retrieve;
 
+    @Autowired
+    private TelemetryClient telemetryClient;
+
     public static void main(final String[] args) {
         SpringApplication.run(Application.class, args);
     }
@@ -23,10 +27,21 @@ public class Application implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            LOGGER.info("send letter processed KEDA container invoked");
+            telemetryClient.trackEvent("send letter processed keda container invoked");
+            LOGGER.info("send letter processed keda container invoked");
             retrieve.read();
+            LOGGER.info("send letter processed keda container finished");
         } catch (Exception e) {
-            LOGGER.info("Exception occured while KEDA container invoked", e);
+            LOGGER.error("Exception occurred while keda container invoked", e);
+        } finally {
+            // Initiate flush and give it some time to finish.
+            telemetryClient.flush();
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ie) {
+                LOGGER.error("Exception in thread sleep", ie);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }
