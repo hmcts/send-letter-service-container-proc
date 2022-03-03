@@ -15,14 +15,14 @@ public class AccessTokenProperties {
         return serviceConfig;
     }
 
-    public TokenConfig getTokenConfigForService(String containerName) {
-        return this.getServiceConfig().stream()
-                .filter(tokenConfig -> tokenConfig.getContainerName().equalsIgnoreCase(containerName))
+    public String getContainerForGivenType(String containerType) {
+        return getServiceConfig().stream()
+                .filter(tokenConfig -> tokenConfig.getContainerType().equals(containerType))
+                .map(AccessTokenProperties.TokenConfig::getContainerName)
                 .findFirst()
-                .orElseThrow(
-                        () -> new ServiceConfigNotFoundException(
-                                "No service configuration found for container " + containerName)
-                );
+                .orElseThrow(() ->
+                        new ServiceConfigNotFoundException(
+                                "No service configuration found for container " + containerType));
     }
 
     public void setServiceConfig(List<TokenConfig> serviceConfig) {
@@ -32,6 +32,7 @@ public class AccessTokenProperties {
     public static class TokenConfig {
         private String containerName;
         private int validity;
+        private String containerType;
 
         public int getValidity() {
             return validity;
@@ -47,6 +48,14 @@ public class AccessTokenProperties {
 
         public void setContainerName(String containerName) {
             this.containerName = containerName;
+        }
+
+        public String getContainerType() {
+            return containerType;
+        }
+
+        public void setContainerType(String containerType) {
+            this.containerType = containerType;
         }
     }
 }

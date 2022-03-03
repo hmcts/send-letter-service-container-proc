@@ -11,5 +11,5 @@ withPipeline(type, product, component) {
     env.PREVIEW_AKS_RESOURCE_GROUP = "cft-preview-01-rg"
     nonServiceApp()
     enableAksStagingDeployment()
-    syncBranchesWithMaster(['demo', 'perftest'])
+    syncBranchesWithMaster(['demo', 'perftest', 'ithc'])
 }

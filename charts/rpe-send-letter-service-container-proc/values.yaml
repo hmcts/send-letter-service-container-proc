@@ -12,10 +12,12 @@ function:
           alias: azure.application-insights.instrumentation-key
   job:
     activeDeadlineSeconds: 300
-    ttlSecondsAfterFinished: 600
+    parallelism: 1
+    completions: 1
   triggerAuth:
     enabled: true
   triggers:
     - type: azure-blob
       blobContainerName: "processed"
       accountName: "rpesendletter{{ .Values.global.environment }}"
+      blobPrefix: ""

@@ -3,13 +3,14 @@ package uk.gov.hmcts.reform.sendletter.blob.component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.sendletter.model.ProcessedBlobInfo;
+import uk.gov.hmcts.reform.sendletter.config.AccessTokenProperties;
+import uk.gov.hmcts.reform.sendletter.exceptions.UnableToZipException;
+import uk.gov.hmcts.reform.sendletter.model.BlobInfo;
 import uk.gov.hmcts.reform.sendletter.services.SasTokenGeneratorService;
 import uk.gov.hmcts.reform.sendletter.zip.ZipFileNameHelper;
 import uk.gov.hmcts.reform.sendletter.zip.Zipper;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Component
@@ -19,46 +20,41 @@ public class BlobUpload {
     private final SasTokenGeneratorService sasTokenGeneratorService;
     private final BlobManager blobManager;
     private final Zipper zipper;
-    private static final String ZIPPED_CONTAINER = "zipped";
+    private final String destinationContainer;
 
-
-    public BlobUpload(BlobManager blobManager, SasTokenGeneratorService sasTokenGeneratorService, Zipper zipper) {
+    public BlobUpload(BlobManager blobManager,
+            SasTokenGeneratorService sasTokenGeneratorService,
+            AccessTokenProperties accessTokenProperties,
+            Zipper zipper) {
         this.blobManager = blobManager;
         this.sasTokenGeneratorService = sasTokenGeneratorService;
+        this.destinationContainer = accessTokenProperties
+                .getContainerForGivenType("destination");
         this.zipper = zipper;
     }
 
-    //zip files in the ‘processed container’ and move them to the ‘zipped’ container
-    public boolean process(final ProcessedBlobInfo blobInfo) throws IOException {
-        var status = false;
-        var containerName = blobInfo.getContainerName();
-
-        LOG.info("zipAndMove:: containerName {}", containerName);
-        var sasToken = sasTokenGeneratorService.generateSasToken(containerName);
-        var pdfFile = blobInfo.getBlobName();
-        var sourceBlobClient = blobManager.getBlobClient(containerName, sasToken, pdfFile);
+    public void process(final BlobInfo blobInfo) {
+        var pdfFile = blobInfo.getBlobClient().getBlobName();
+        var sourceBlobClient = blobInfo.getBlobClient();
+        LOG.info("process zip:: pdfFile {}", pdfFile);
 
         try (var blobInputStream = sourceBlobClient.openInputStream()) {
             byte[] fileContent = blobInputStream.readAllBytes();
-            status = doZipAndUpload(pdfFile, fileContent);
-        }
-        return status;
-    }
 
-    private boolean doZipAndUpload(String pdfFile, byte[] fileContent) {
-        try {
             var zipFile = ZipFileNameHelper
                     .getZipFileName(pdfFile, LocalDateTime.now(), pdfFile.lastIndexOf("_"));
+
             byte[] zipContent = zipper.zipBytes(pdfFile, fileContent);
-            var containerClient = blobManager.getContainerClient(ZIPPED_CONTAINER);
-            var zipBlobClient = containerClient.getBlobClient(zipFile);
+            String sasToken = sasTokenGeneratorService.generateSasToken(destinationContainer);
+            var zipBlobClient = blobManager.getBlobClient(destinationContainer, sasToken, zipFile);
             var byteArrayInputStream = new ByteArrayInputStream(zipContent);
+
             zipBlobClient.upload(byteArrayInputStream, zipContent.length);
             LOG.info("Uploaded blob {} to zipped container completed.", zipBlobClient.getBlobUrl());
-            return true;
+
         } catch (Exception e) {
-            LOG.error("Exception in uploading {}", pdfFile, e);
-            return false;
+            throw new UnableToZipException(String.format("Exception in zipping and upload %s", pdfFile), e);
         }
     }
+
 }
