@@ -161,7 +161,7 @@ dependencyManagement {
       entry 'guava'
     }
 
-    dependencySet(group: 'io.netty', version: '4.1.69.Final') {
+    dependencySet(group: 'io.netty', version: '4.1.75.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-http'
@@ -199,7 +199,7 @@ dependencyManagement {
       entry 'log4j-to-slf4j'
     }
     // CVE-2020-36518
-    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.13.0') {
+    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.13.2.2') {
       entry 'jackson-databind'
     }
   }
