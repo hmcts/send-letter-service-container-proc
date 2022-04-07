@@ -180,7 +180,7 @@ dependencyManagement {
       entry 'netty-resolver-dns-native-macos'
     }
     //CVE-2021-22096
-    dependencySet(group: 'org.springframework', version: '5.3.15') {
+    dependencySet(group: 'org.springframework', version: '5.3.18') {
       entry 'spring-aop'
       entry 'spring-beans'
       entry 'spring-context'
@@ -199,7 +199,7 @@ dependencyManagement {
       entry 'log4j-to-slf4j'
     }
     // CVE-2020-36518
-    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.13.0') {
+    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.13.2.2') {
       entry 'jackson-databind'
     }
   }
