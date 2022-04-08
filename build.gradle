@@ -189,12 +189,12 @@ dependencyManagement {
       entry 'spring-jcl'
     }
     // CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.2.10') {
+    dependencySet(group: 'ch.qos.logback', version: '1.2.11') {
       entry 'logback-classic'
       entry 'logback-core'
     }
     // CVE-2021-45105
-    dependencySet(group: 'org.apache.logging.log4j', version: '2.17.1') {
+    dependencySet(group: 'org.apache.logging.log4j', version: '2.17.2') {
       entry 'log4j-api'
       entry 'log4j-to-slf4j'
     }
