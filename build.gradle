@@ -161,9 +161,11 @@ dependencyManagement {
       entry 'guava'
     }
 
-    dependencySet(group: 'io.netty', version: '4.1.76.Final') {
+    //CVE-2022-24823
+    dependencySet(group: 'io.netty', version: '4.1.77.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
+      entry 'netty-codec-dns'
       entry 'netty-codec-http'
       entry 'netty-codec-http2'
       entry 'netty-codec-socks'
@@ -171,13 +173,15 @@ dependencyManagement {
       entry 'netty-handler'
       entry 'netty-handler-proxy'
       entry 'netty-resolver'
+      entry 'netty-resolver-dns'
+      entry 'netty-resolver-dns-classes-macos'
+      entry 'netty-resolver-dns-native-macos'
       entry 'netty-transport'
+      entry 'netty-transport-classes-epoll'
+      entry 'netty-transport-classes-kqueue'
       entry 'netty-transport-native-epoll'
       entry 'netty-transport-native-kqueue'
       entry 'netty-transport-native-unix-common'
-      entry 'netty-codec-dns'
-      entry 'netty-resolver-dns'
-      entry 'netty-resolver-dns-native-macos'
     }
     //CVE-2021-22096
     dependencySet(group: 'org.springframework', version: '5.3.20') {
