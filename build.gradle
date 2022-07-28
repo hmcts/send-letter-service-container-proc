@@ -216,7 +216,7 @@ repositories {
 }
 
 def versions = [
-  junit           : '5.8.2',
+  junit           : '5.9.0',
   junitPlatform   : '1.9.0',
   springfoxSwagger: '2.9.2',
   mockitoJupiter  : '3.3.3',
