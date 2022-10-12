@@ -4,10 +4,11 @@
         <cve>CVE-2022-22976</cve>
         <cve>CVE-2022-22978</cve>
     </suppress>
-    <suppress until="2022-10-01">
-        <cve>CVE-2022-33915</cve>
-    </suppress>
     <suppress until="2022-10-18">
         <cve>CVE-2022-31569</cve>
+    </suppress>
+    <suppress until="2023-01-12">
+        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+        <cve>CVE-2022-42003</cve>
     </suppress>
 </suppressions>
