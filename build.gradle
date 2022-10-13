@@ -203,7 +203,7 @@ dependencyManagement {
       entry 'log4j-to-slf4j'
     }
     // CVE-2020-36518
-    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.13.4') {
+    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.13.4.1') {
       entry 'jackson-databind'
     }
     // CVE-2022-25857
