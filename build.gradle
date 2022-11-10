@@ -162,7 +162,7 @@ dependencyManagement {
     }
 
     //CVE-2022-24823
-    dependencySet(group: 'io.netty', version: '4.1.84.Final') {
+    dependencySet(group: 'io.netty', version: '4.1.85.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
