@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-    <suppress until="2022-12-06">
+    <suppress until="2023-03-06">
         <cve>CVE-2022-22976</cve>
         <cve>CVE-2022-22978</cve>
     </suppress>
-    <suppress until="2022-10-01">
-        <cve>CVE-2022-33915</cve>
+    <suppress until="2023-01-12">
+        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+        <cve>CVE-2022-42003</cve>
     </suppress>
-    <suppress until="2022-10-18">
-        <cve>CVE-2022-31569</cve>
+    <suppress until="2023-03-08">
+        <notes>apache-commons vulnerability</notes>
+        <cve>CVE-2021-37533</cve>
     </suppress>
 </suppressions>
